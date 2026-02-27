@@ -7,8 +7,10 @@ public class WaveManager : MonoBehaviour
     public GameObject zombiePrefab;
     public Transform[] spawnPoints;
 
-    public int round = 1;
-    public int zombiesPerRound = 5;
+    public int roundNumber = 1;
+    public int baseZombieCount = 5;
+
+    private int zombiesAlive;
 
     void Start()
     {
@@ -17,20 +19,30 @@ public class WaveManager : MonoBehaviour
 
     void Update()
     {
-        if (GameObject.FindGameObjectsWithTag("Zombie").Length == 0)
+        if (zombiesAlive <= 0)
         {
-            round++;
-            zombiesPerRound += 3;
+            roundNumber++;
             StartRound();
         }
     }
 
     void StartRound()
     {
-        for (int i = 0; i < zombiesPerRound; i++)
+        int zombiesToSpawn = baseZombieCount + (roundNumber * 2);
+        zombiesAlive = zombiesToSpawn;
+
+        for (int i = 0; i < zombiesToSpawn; i++)
         {
-            int randomSpawn = Random.Range(0, spawnPoints.Length);
-            Instantiate(zombiePrefab, spawnPoints[randomSpawn].position, Quaternion.identity);
+            Transform spawn = spawnPoints[Random.Range(0, spawnPoints.Length)];
+            GameObject zombie = Instantiate(zombiePrefab, spawn.position, Quaternion.identity);
+
+            zombie.GetComponent<ZombieHealth>().maxHealth += roundNumber * 10;
+            zombie.GetComponent<ZombieHealth>().TakeDamage(0);
         }
+    }
+
+    public void ZombieKilled()
+    {
+        zombiesAlive--;
     }
 }
